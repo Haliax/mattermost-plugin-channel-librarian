@@ -18,6 +18,7 @@ Optionally, change `settings` under the plugins settings menu in System Console:
 - Include private channels
 - Mention
 - IncludeChannelPurpose
+- TeamsToWatch
 
 ## Developing 
 
