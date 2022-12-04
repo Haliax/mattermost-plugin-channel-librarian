@@ -2,16 +2,24 @@
     "id": "mattermost-plugin-newchannelnotify",
     "name": "New Channel Notify",
     "description": "Notifies people for newly created channels",
-    "version": "0.9.3",
-    "min_server_version": "5.10.0",
+    "homepage_url": "https://gitlab.com/thepill/mattermost-plugin-newchannelnotify",
+    "support_url": "https://gitlab.com/thepill/mattermost-plugin-newchannelnotify/issues",
+    "release_notes_url": "https://gitlab.com/thepill/mattermost-plugin-newchannelnotify/-/releases",
+    "icon_path": "assets/starter-template-icon.svg",
+    "version": "0.10.0",
+    "min_server_version": "6.0.0",
     "server": {
         "executables": {
             "linux-amd64": "server/dist/plugin-linux-amd64",
+            "linux-arm64": "server/dist/plugin-linux-arm64",
             "darwin-amd64": "server/dist/plugin-darwin-amd64",
+            "darwin-arm64": "server/dist/plugin-darwin-arm64",
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
         }
     },
     "settings_schema": {
+        "header": "",
+        "footer": "",
         "settings": [
             {
                 "key": "BotUserName",
@@ -32,14 +40,14 @@
                 "display_name": "Include private channels",
                 "type": "bool",
                 "help_text": "Trigger the bot for new private channels too",
-                "default": false  
+                "default": false
             },
             {
                 "key": "IncludeChannelPurpose",
                 "display_name": "Include purpose of the channel",
                 "type": "bool",
                 "help_text": "Add the Channel's purpose/description text to the announcement",
-                "default": false  
+                "default": false
             },
             {
                 "key": "Mention",

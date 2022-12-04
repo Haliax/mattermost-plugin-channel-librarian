@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 const defaultBotName = "newchannelbot"
@@ -38,28 +38,28 @@ func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channe
 	}
 
 	if config.ChannelToPost == "" {
-		config.ChannelToPost = model.DEFAULT_CHANNEL
+		config.ChannelToPost = model.DefaultChannelName
 	}
 
-	if config.IncludeChannelPurpose == true && channel.Purpose != "" {
+	if config.IncludeChannelPurpose && channel.Purpose != "" {
 		ChannelPurpose = "\n **" + channel.Name + "'s Purpose:** " + channel.Purpose
 	}
 
 	newChannelName := channel.Name
 
-	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		return
 	}
 
-	if channel.Type == model.CHANNEL_PRIVATE {
-		if config.IncludePrivateChannels == false {
+	if channel.Type == model.ChannelTypePrivate {
+		if config.IncludePrivateChannels {
 			return
 		}
 		newChannelName += " [Private]"
 	}
 
 	p.ensureBotExists()
-	bot, err := p.API.GetUserByUsername(config.BotUserName)
+	bot, _ := p.API.GetUserByUsername(config.BotUserName)
 
 	mainChannel, err := p.API.GetChannelByName(channel.TeamId, config.ChannelToPost, false)
 	if err != nil {
