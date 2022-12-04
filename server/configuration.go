@@ -23,6 +23,7 @@ type configuration struct {
 	IncludePrivateChannels bool
 	IncludeChannelPurpose  bool
 	Mention                string
+	TeamsToWatch		   string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if

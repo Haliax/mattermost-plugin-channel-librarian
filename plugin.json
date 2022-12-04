@@ -69,6 +69,13 @@
                         "value": " "
                     }
                 ]
+            },
+            {
+                "key": "TeamsToWatch",
+                "display_name": "Teams ",
+                "type": "text",
+                "help_text": "Specify which teams should be monitored. Empty => all teams. Multiple teams can be specified separated by semicolon (;).",
+                "default": ""
             }
         ]
     }

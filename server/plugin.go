@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -26,12 +27,39 @@ func (p *NewChannelNotifyPlugin) OnActivate() error {
 	return nil
 }
 
+// https://play.golang.org/p/Qg_uv_inCek
+// contains checks if a string is present in a slice
+func containsCaseInsensitive(s []string, str string) bool {
+	for _, v := range s {
+		if strings.ToLower(v) == strings.ToLower(str) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel) {
 	log := fmt.Sprintf("ChannelHasBeenCreated for channel with id [%s], type [%s] triggerd", channel.Id, channel.Type)
 	p.API.LogDebug(log)
 
 	config := p.getConfiguration()
-	ChannelPurpose := ""
+
+	// Check if only specific teams are beeing watched and notiefied
+	if config.TeamsToWatch != "" {
+		team, err := p.API.GetTeam(channel.TeamId)
+		if err != nil {
+			p.API.LogError(err.Message)
+		}
+		p.API.LogDebug(fmt.Sprintf("team: %s", team.Name))
+
+		teamsToWatch := strings.Split(config.TeamsToWatch, ";")
+
+		if !containsCaseInsensitive(teamsToWatch, team.Name) {
+			p.API.LogDebug(fmt.Sprintf("team %s is not watched - skipping", team.Name))
+			return
+		}
+	}
 
 	if config.BotUserName == "" {
 		config.BotUserName = defaultBotName
@@ -41,6 +69,7 @@ func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channe
 		config.ChannelToPost = model.DefaultChannelName
 	}
 
+	ChannelPurpose := ""
 	if config.IncludeChannelPurpose && channel.Purpose != "" {
 		ChannelPurpose = "\n **" + channel.Name + "'s Purpose:** " + channel.Purpose
 	}
