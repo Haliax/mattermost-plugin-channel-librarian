@@ -81,7 +81,7 @@ func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channe
 	}
 
 	if channel.Type == model.ChannelTypePrivate {
-		if config.IncludePrivateChannels {
+		if config.IncludePrivateChannels == false {
 			return
 		}
 		newChannelName += " [Private]"

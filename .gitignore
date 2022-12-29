@@ -3,3 +3,5 @@ dist
 .DS_Store
 dev-env.txt
 Notes.txt
+
+.idea/
