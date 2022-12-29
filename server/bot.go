@@ -19,6 +19,7 @@ func (p *NewChannelNotifyPlugin) ensureBotExists() {
 
 		if err != nil {
 			p.API.LogError(err.Message)
+			return
 		}
 	}
 }

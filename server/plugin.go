@@ -43,18 +43,23 @@ func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channe
 	log := fmt.Sprintf("ChannelHasBeenCreated for channel with id [%s], type [%s] triggerd", channel.Id, channel.Type)
 	p.API.LogDebug(log)
 
+	// ToDo: Discuss to display the message anyway.
+	if channel.CreatorId == "" {
+		p.API.LogDebug("Not creating post due to channel being created through automation.")
+		return
+	}
+
 	config := p.getConfiguration()
 
-	// Check if only specific teams are beeing watched and notiefied
+	// Check if only specific teams are being watched and notified
 	if config.TeamsToWatch != "" {
 		team, err := p.API.GetTeam(channel.TeamId)
 		if err != nil {
 			p.API.LogError(err.Message)
+			return
 		}
-		p.API.LogDebug(fmt.Sprintf("team: %s", team.Name))
 
 		teamsToWatch := strings.Split(config.TeamsToWatch, ";")
-
 		if !containsCaseInsensitive(teamsToWatch, team.Name) {
 			p.API.LogDebug(fmt.Sprintf("team %s is not watched - skipping", team.Name))
 			return
@@ -84,20 +89,27 @@ func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channe
 		if config.IncludePrivateChannels == false {
 			return
 		}
+
 		newChannelName += " [Private]"
 	}
 
 	p.ensureBotExists()
-	bot, _ := p.API.GetUserByUsername(config.BotUserName)
+	bot, err := p.API.GetUserByUsername(config.BotUserName)
+	if err != nil {
+		p.API.LogError(err.Message)
+		return
+	}
 
 	mainChannel, err := p.API.GetChannelByName(channel.TeamId, config.ChannelToPost, false)
 	if err != nil {
 		p.API.LogError(err.Message)
+		return
 	}
 
 	creator, err := p.API.GetUser(channel.CreatorId)
 	if err != nil {
 		p.API.LogError(err.Message)
+		return
 	}
 
 	post, err := p.API.CreatePost(&model.Post{
@@ -106,9 +118,10 @@ func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channe
 		Message:   fmt.Sprintf("%sHello there :wave:. You might want to check out the new channel ~%s created by @%s %s", config.Mention, newChannelName, creator.Username, ChannelPurpose),
 	})
 
-	p.API.LogDebug(fmt.Sprintf("Created post %s", post.Id))
-
 	if err != nil {
 		p.API.LogError(err.Message)
+		return
 	}
+
+	p.API.LogDebug(fmt.Sprintf("Created post %s", post.Id))
 }
