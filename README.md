@@ -1,8 +1,17 @@
 # Mattermost New Channel Notify Plugin
 
+This plugin is a fork of [gitlab.com/thepill/mattermost-plugin-newchannelnotify](https://gitlab.com/thepill/mattermost-plugin-newchannelnotify).
+
+
 A plugin for Mattermost to notify all users about newly created channels.
 
 ![screenshot](https://i.imgur.com/SII7ZEi.png)
+
+
+## Notes and Acknowledgements
+
+This plugin is a fork of [gitlab.com/thepill/mattermost-plugin-newchannelnotify](https://gitlab.com/thepill/mattermost-plugin-newchannelnotify).
+
 
 ## Installation
 
@@ -36,3 +45,5 @@ export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
 export MM_ADMIN_USERNAME=admin
 export MM_ADMIN_PASSWORD=password
 ```
+
+
