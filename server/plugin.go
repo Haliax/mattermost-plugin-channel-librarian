@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 )
-
-const defaultBotName = "newchannelbot"
 
 type NewChannelNotifyPlugin struct {
 	plugin.MattermostPlugin
@@ -20,108 +19,100 @@ type NewChannelNotifyPlugin struct {
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
 	configuration *configuration
+
+	BotUserId    string
+	TeamsToWatch []string
 }
 
 func (p *NewChannelNotifyPlugin) OnActivate() error {
-	p.API.LogInfo("Plugin loaded")
+	p.API.LogDebug("Plugin loading...")
+	config := p.getConfiguration()
+
+	// Ensure default values.
+	p.ensureDefaultValues()
+
+	// Ensure the bot.
+	botId, err := p.ensureBotExists()
+	if err != nil {
+		return errors.Wrap(err, "failed to ensure channel librarian bot")
+	}
+	p.BotUserId = botId
+
+	// Ensure all team
+	if config.TeamsToWatch != "" {
+		teamsToWatch := strings.Split(config.TeamsToWatch, ";")
+		if teamsToWatch != nil {
+			p.TeamsToWatch = teamsToWatch
+		}
+	}
+
+	p.API.LogInfo("Plugin loaded.")
 	return nil
 }
 
-// https://play.golang.org/p/Qg_uv_inCek
-// contains checks if a string is present in a slice
-func containsCaseInsensitive(s []string, str string) bool {
-	for _, v := range s {
-		if strings.ToLower(v) == strings.ToLower(str) {
-			return true
-		}
-	}
-
-	return false
+func (p *NewChannelNotifyPlugin) OnDeactivate() error {
+	return nil
 }
 
 func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel) {
-	log := fmt.Sprintf("ChannelHasBeenCreated for channel with id [%s], type [%s] triggerd", channel.Id, channel.Type)
-	p.API.LogDebug(log)
+	p.announceNewChannel(c, channel)
+}
 
-	// ToDo: Discuss to display the message anyway.
-	if channel.CreatorId == "" {
-		p.API.LogDebug("Not creating post due to channel being created through automation.")
-		return
-	}
-
-	config := p.getConfiguration()
-
-	// Check if only specific teams are being watched and notified
-	if config.TeamsToWatch != "" {
-		team, err := p.API.GetTeam(channel.TeamId)
-		if err != nil {
-			p.API.LogError(err.Message)
-			return
-		}
-
-		teamsToWatch := strings.Split(config.TeamsToWatch, ";")
-		if !containsCaseInsensitive(teamsToWatch, team.Name) {
-			p.API.LogDebug(fmt.Sprintf("team %s is not watched - skipping", team.Name))
-			return
-		}
-	}
-
-	if config.BotUserName == "" {
-		config.BotUserName = defaultBotName
-	}
-
-	if config.ChannelToPost == "" {
-		config.ChannelToPost = model.DefaultChannelName
-	}
-
-	ChannelPurpose := ""
-	if config.IncludeChannelPurpose && channel.Purpose != "" {
-		ChannelPurpose = "\n **" + channel.Name + "'s Purpose:** " + channel.Purpose
-	}
-
-	newChannelName := channel.Name
-
+func (p *NewChannelNotifyPlugin) announceNewChannel(c *plugin.Context, channel *model.Channel) {
+	// Ignore DMs.
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		return
 	}
 
+	p.API.LogDebug(fmt.Sprintf("ChannelLibrarian: New channel with id [%s], type [%s] created", channel.Id, channel.Type))
+
+	// Ignore the channel if it is created automatically.
+	if channel.CreatorId == "" {
+		p.API.LogDebug("ChannelLibrarian: Ignored channel due to not having a valid creator.")
+		return
+	}
+
+	// Ignore the channel if the team is not watched.
+	if !p.isTeamWatched(channel) {
+		return
+	}
+
+	// Ignore private channels depending on the configuration.
+	config := p.getConfiguration()
+	isPrivateChannel := false
 	if channel.Type == model.ChannelTypePrivate {
 		if config.IncludePrivateChannels == false {
 			return
 		}
 
-		newChannelName += " [Private]"
+		isPrivateChannel = true
 	}
 
-	p.ensureBotExists()
-	bot, err := p.API.GetUserByUsername(config.BotUserName)
+	channelToPostTo, err := p.API.GetChannelByName(channel.TeamId, config.ChannelToPost, false)
 	if err != nil {
-		p.API.LogError(err.Message)
-		return
-	}
-
-	mainChannel, err := p.API.GetChannelByName(channel.TeamId, config.ChannelToPost, false)
-	if err != nil {
-		p.API.LogError(err.Message)
+		p.API.LogError(fmt.Sprintf("ChannelLibrarian: Could not find channel to post to: %s", err.Message))
 		return
 	}
 
 	creator, err := p.API.GetUser(channel.CreatorId)
 	if err != nil {
-		p.API.LogError(err.Message)
+		p.API.LogError(fmt.Sprintf("ChannelLibrarian: Could not find the creator of the channel: %s", err.Message))
 		return
 	}
 
-	post, err := p.API.CreatePost(&model.Post{
-		ChannelId: mainChannel.Id,
-		UserId:    bot.Id,
-		Message:   fmt.Sprintf("%sHello there :wave:. You might want to check out the new channel ~%s created by @%s %s", config.Mention, newChannelName, creator.Username, ChannelPurpose),
-	})
-
-	if err != nil {
-		p.API.LogError(err.Message)
-		return
+	purposeText := ""
+	if config.IncludeChannelPurpose && channel.Purpose != "" {
+		purposeText = "\n\n**Purpose:** " + channel.Purpose
 	}
 
-	p.API.LogDebug(fmt.Sprintf("Created post %s", post.Id))
+	privateText := ""
+	if isPrivateChannel {
+		privateText = " **[private]**"
+	}
+
+	message := fmt.Sprintf(
+		"%sHello there :wave:. You might want to check out the new%s channel ~%s created by @%s %s",
+		config.Mention, privateText, channel.Name, creator.Username, purposeText,
+	)
+	_ = p.postMessage(channelToPostTo.Id, message)
 }
