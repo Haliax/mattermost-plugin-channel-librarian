@@ -1,12 +1,12 @@
 {
-    "id": "mattermost-plugin-newchannelnotify",
-    "name": "New Channel Notify",
+    "id": "mattermost-plugin-channel-librarian",
+    "name": "Channel Librarian",
     "description": "Notifies people for newly created channels",
-    "homepage_url": "https://gitlab.com/thepill/mattermost-plugin-newchannelnotify",
-    "support_url": "https://gitlab.com/thepill/mattermost-plugin-newchannelnotify/issues",
-    "release_notes_url": "https://gitlab.com/thepill/mattermost-plugin-newchannelnotify/-/releases",
+    "homepage_url": "https://github.com/Haliax/mattermost-plugin-channel-librarian",
+    "support_url": "https://github.com/Haliax/mattermost-plugin-channel-librarian/issues",
+    "release_notes_url": "https://github.com/Haliax/mattermost-plugin-channel-librarian/releases",
     "icon_path": "assets/starter-template-icon.svg",
-    "version": "0.12.1",
+    "version": "0.13.0",
     "min_server_version": "6.0.0",
     "server": {
         "executables": {
@@ -50,32 +50,18 @@
                 "default": false
             },
             {
-                "key": "Mention",
-                "display_name": "Mention",
-                "type": "dropdown",
-                "help_text": "Who gets mentioned.",
-                "default": "@channel ",
-                "options": [
-                    {
-                        "display_name": "@channel",
-                        "value": "@channel "
-                    },
-                    {
-                        "display_name": "@here",
-                        "value": "@here "
-                    },
-                    {
-                        "display_name": "None",
-                        "value": " "
-                    }
-                ]
-            },
-            {
                 "key": "TeamsToWatch",
                 "display_name": "Teams ",
                 "type": "text",
                 "help_text": "Specify which teams should be monitored. Empty => all teams. Multiple teams can be specified separated by semicolon (;).",
                 "default": ""
+            },
+            {
+                "key": "MessageTemplate",
+                "display_name": "Message Template",
+                "type": "longtext",
+                "help_text": "Set the message template to the announcement.",
+                "default": "##### A new channel.type channel has been created\nchannel.creator created a new **channel.type** channel channel.link .\n\nThe purpose of that channel is:\n```\nchannel.purpose\n```"
             }
         ]
     }

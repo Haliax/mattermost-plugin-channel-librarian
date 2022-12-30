@@ -23,9 +23,9 @@ Optionally, change `settings` under the plugins settings menu in System Console:
 - Bot Name
 - Channel to Post
 - Include private channels
-- Mention (see Note below)
 - IncludeChannelPurpose
 - TeamsToWatch
+- MessageTemplate
 
 **A note about Mentions**:
 Mentions will only work properly if the bot account has been assigned to the team and, if needed, the channel where it will post.

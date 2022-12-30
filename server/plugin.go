@@ -29,10 +29,10 @@ func (p *NewChannelNotifyPlugin) OnActivate() error {
 	config := p.getConfiguration()
 
 	// Ensure default values.
-	p.ensureDefaultValues()
+	p.EnsureDefaultValues()
 
 	// Ensure the bot.
-	botId, err := p.ensureBotExists()
+	botId, err := p.EnsureBotExists()
 	if err != nil {
 		return errors.Wrap(err, "failed to ensure channel librarian bot")
 	}
@@ -55,10 +55,10 @@ func (p *NewChannelNotifyPlugin) OnDeactivate() error {
 }
 
 func (p *NewChannelNotifyPlugin) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel) {
-	p.announceNewChannel(c, channel)
+	p.AnnounceNewChannel(c, channel)
 }
 
-func (p *NewChannelNotifyPlugin) announceNewChannel(c *plugin.Context, channel *model.Channel) {
+func (p *NewChannelNotifyPlugin) AnnounceNewChannel(c *plugin.Context, channel *model.Channel) {
 	// Ignore DMs.
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		return
@@ -73,7 +73,7 @@ func (p *NewChannelNotifyPlugin) announceNewChannel(c *plugin.Context, channel *
 	}
 
 	// Ignore the channel if the team is not watched.
-	if !p.isTeamWatched(channel) {
+	if !p.IsTeamWatched(channel) {
 		return
 	}
 
@@ -102,17 +102,26 @@ func (p *NewChannelNotifyPlugin) announceNewChannel(c *plugin.Context, channel *
 
 	purposeText := ""
 	if config.IncludeChannelPurpose && channel.Purpose != "" {
-		purposeText = "\n\n**Purpose:** " + channel.Purpose
+		purposeText = channel.Purpose
 	}
 
-	privateText := ""
+	privateText := "public"
 	if isPrivateChannel {
-		privateText = " **[private]**"
+		privateText = "private"
 	}
 
-	message := fmt.Sprintf(
-		"%sHello there :wave:. You might want to check out the new%s channel ~%s created by @%s %s",
-		config.Mention, privateText, channel.Name, creator.Username, purposeText,
-	)
+	message := FormatTemplate(config.MessageTemplate, creator.Username, channel.DisplayName, channel.Name, purposeText, privateText)
 	_ = p.postMessage(channelToPostTo.Id, message)
+}
+
+func FormatTemplate(template string, creatorName string, channelDisplayName string, channelName string, channelPurpose string, channelType string) string {
+	message := template
+
+	message = strings.Replace(message, "channel.creator", "@"+creatorName, -1)
+	message = strings.Replace(message, "channel.name", channelDisplayName, -1)
+	message = strings.Replace(message, "channel.link", "~"+channelName, -1)
+	message = strings.Replace(message, "channel.purpose", channelPurpose, -1)
+	message = strings.Replace(message, "channel.type", channelType, -1)
+
+	return message
 }

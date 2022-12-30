@@ -8,7 +8,7 @@ import (
 
 const defaultBotName = "channel-librarian"
 
-func (p *NewChannelNotifyPlugin) ensureDefaultValues() {
+func (p *NewChannelNotifyPlugin) EnsureDefaultValues() {
 	config := p.getConfiguration()
 
 	if config.BotUserName == "" {
@@ -18,9 +18,13 @@ func (p *NewChannelNotifyPlugin) ensureDefaultValues() {
 	if config.ChannelToPost == "" {
 		config.ChannelToPost = model.DefaultChannelName
 	}
+
+	if config.MessageTemplate == "" {
+		config.MessageTemplate = "Hello there :wave:. You might want to checkout the new channel channel.link created by channel.creator"
+	}
 }
 
-func (p *NewChannelNotifyPlugin) ensureBotExists() (string, error) {
+func (p *NewChannelNotifyPlugin) EnsureBotExists() (string, error) {
 	config := p.getConfiguration()
 
 	// Check whether the bot exists.
@@ -46,7 +50,7 @@ func (p *NewChannelNotifyPlugin) ensureBotExists() (string, error) {
 	return existingBot.Id, nil
 }
 
-func (p *NewChannelNotifyPlugin) isTeamWatched(channel *model.Channel) bool {
+func (p *NewChannelNotifyPlugin) IsTeamWatched(channel *model.Channel) bool {
 	// Watch all teams by default.
 	if p.TeamsToWatch == nil && len(p.TeamsToWatch) <= 0 {
 		return true
@@ -58,7 +62,7 @@ func (p *NewChannelNotifyPlugin) isTeamWatched(channel *model.Channel) bool {
 		return false
 	}
 
-	if !containsValueCaseInsensitive(p.TeamsToWatch, team.Name) {
+	if !ContainsValueCaseInsensitive(p.TeamsToWatch, team.Name) {
 		return false
 	}
 

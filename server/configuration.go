@@ -22,8 +22,8 @@ type configuration struct {
 	BotUserName            string
 	IncludePrivateChannels bool
 	IncludeChannelPurpose  bool
-	Mention                string
-	TeamsToWatch		   string
+	TeamsToWatch           string
+	MessageTemplate        string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
