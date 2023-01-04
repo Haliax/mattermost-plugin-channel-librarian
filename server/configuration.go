@@ -24,6 +24,7 @@ type configuration struct {
 	IncludeChannelPurpose  bool
 	TeamsToWatch           string
 	MessageTemplate        string
+	IgnoredPatterns        string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -84,6 +85,7 @@ func (p *NewChannelNotifyPlugin) OnConfigurationChange() error {
 	}
 
 	p.setConfiguration(configuration)
+	p.EnsureDefaultValues()
 
 	return nil
 }

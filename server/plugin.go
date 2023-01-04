@@ -20,13 +20,13 @@ type NewChannelNotifyPlugin struct {
 	// setConfiguration for usage.
 	configuration *configuration
 
-	BotUserId    string
-	TeamsToWatch []string
+	BotUserId       string
+	TeamsToWatch    []string
+	IgnoredPatterns []string
 }
 
 func (p *NewChannelNotifyPlugin) OnActivate() error {
 	p.API.LogDebug("Plugin loading...")
-	config := p.getConfiguration()
 
 	// Ensure default values.
 	p.EnsureDefaultValues()
@@ -37,14 +37,6 @@ func (p *NewChannelNotifyPlugin) OnActivate() error {
 		return errors.Wrap(err, "failed to ensure channel librarian bot")
 	}
 	p.BotUserId = botId
-
-	// Ensure all team
-	if config.TeamsToWatch != "" {
-		teamsToWatch := strings.Split(config.TeamsToWatch, ";")
-		if teamsToWatch != nil {
-			p.TeamsToWatch = teamsToWatch
-		}
-	}
 
 	p.API.LogInfo("Plugin loaded.")
 	return nil
@@ -73,7 +65,7 @@ func (p *NewChannelNotifyPlugin) AnnounceNewChannel(c *plugin.Context, channel *
 	}
 
 	// Ignore the channel if the team is not watched.
-	if !p.IsTeamWatched(channel) {
+	if !p.IsTeamWatched(channel) || p.IsChannelIgnored(channel) {
 		return
 	}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 const defaultBotName = "channel-librarian"
@@ -21,6 +22,21 @@ func (p *NewChannelNotifyPlugin) EnsureDefaultValues() {
 
 	if config.MessageTemplate == "" {
 		config.MessageTemplate = "Hello there :wave:. You might want to checkout the new channel channel.link created by channel.creator"
+	}
+
+	// Ensure all team
+	if config.TeamsToWatch != "" {
+		teamsToWatch := strings.Split(config.TeamsToWatch, ";")
+		if teamsToWatch != nil {
+			p.TeamsToWatch = teamsToWatch
+		}
+	}
+
+	if config.IgnoredPatterns != "" {
+		ignoredPatterns := strings.Split(config.IgnoredPatterns, ";")
+		if ignoredPatterns != nil {
+			p.IgnoredPatterns = ignoredPatterns
+		}
 	}
 }
 
@@ -52,7 +68,7 @@ func (p *NewChannelNotifyPlugin) EnsureBotExists() (string, error) {
 
 func (p *NewChannelNotifyPlugin) IsTeamWatched(channel *model.Channel) bool {
 	// Watch all teams by default.
-	if p.TeamsToWatch == nil && len(p.TeamsToWatch) <= 0 {
+	if p.TeamsToWatch == nil || len(p.TeamsToWatch) <= 0 {
 		return true
 	}
 
@@ -67,6 +83,19 @@ func (p *NewChannelNotifyPlugin) IsTeamWatched(channel *model.Channel) bool {
 	}
 
 	return true
+}
+
+func (p *NewChannelNotifyPlugin) IsChannelIgnored(channel *model.Channel) bool {
+	if p.IgnoredPatterns == nil || len(p.IgnoredPatterns) <= 0 {
+		return false
+	}
+
+	if ContainsStringCaseInsensitive(p.IgnoredPatterns, channel.Name) {
+		p.API.LogDebug(fmt.Sprintf("ChannelLibrarian: Refusing to announce the channel as its name contains ignored patterns."))
+		return true
+	}
+
+	return false
 }
 
 func (p *NewChannelNotifyPlugin) postMessage(channelId string, message string) error {

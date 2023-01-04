@@ -6,7 +6,7 @@
     "support_url": "https://github.com/Haliax/mattermost-plugin-channel-librarian/issues",
     "release_notes_url": "https://github.com/Haliax/mattermost-plugin-channel-librarian/releases",
     "icon_path": "assets/starter-template-icon.svg",
-    "version": "0.13.0",
+    "version": "0.13.1",
     "min_server_version": "6.0.0",
     "server": {
         "executables": {
@@ -51,7 +51,7 @@
             },
             {
                 "key": "TeamsToWatch",
-                "display_name": "Teams ",
+                "display_name": "Teams",
                 "type": "text",
                 "help_text": "Specify which teams should be monitored. Empty => all teams. Multiple teams can be specified separated by semicolon (;).",
                 "default": ""
@@ -62,6 +62,13 @@
                 "type": "longtext",
                 "help_text": "Set the message template to the announcement.",
                 "default": "##### A new channel.type channel has been created\nchannel.creator created a new **channel.type** channel channel.link .\n\nThe purpose of that channel is:\n```\nchannel.purpose\n```"
+            },
+            {
+                "key": "IgnoredPatterns",
+                "display_name": "Ignored Patterns",
+                "type": "text",
+                "help_text": "Channels which include one of these patterns will not be announced. Different entries are seperated by semicolons (;).",
+                "default": "birthday"
             }
         ]
     }

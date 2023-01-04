@@ -12,6 +12,16 @@ func ContainsValueCaseInsensitive(s []string, str string) bool {
 	return false
 }
 
+func ContainsStringCaseInsensitive(s []string, str string) bool {
+	for _, v := range s {
+		if strings.Contains(strings.ToLower(str), strings.ToLower(v)) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func ContainsValue(arr []string, value string) bool {
 	for _, element := range arr {
 		if element == value {
