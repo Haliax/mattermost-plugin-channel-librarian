@@ -20,9 +20,10 @@ type NewChannelNotifyPlugin struct {
 	// setConfiguration for usage.
 	configuration *configuration
 
-	BotUserId       string
-	TeamsToWatch    []string
-	IgnoredPatterns []string
+	BotUserId                  string
+	TeamsToWatch               []string
+	IgnoredPatterns            []string
+	BlacklistedPurposePatterns []string
 }
 
 func (p *NewChannelNotifyPlugin) OnActivate() error {
@@ -74,6 +75,10 @@ func (p *NewChannelNotifyPlugin) AnnounceNewChannel(c *plugin.Context, channel *
 	isPrivateChannel := false
 	if channel.Type == model.ChannelTypePrivate {
 		if config.IncludePrivateChannels == false {
+			return
+		}
+
+		if p.HasBlacklistedPurposePatterns(channel) {
 			return
 		}
 

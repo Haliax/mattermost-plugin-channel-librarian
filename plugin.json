@@ -6,7 +6,7 @@
     "support_url": "https://github.com/Haliax/mattermost-plugin-channel-librarian/issues",
     "release_notes_url": "https://github.com/Haliax/mattermost-plugin-channel-librarian/releases",
     "icon_path": "assets/starter-template-icon.svg",
-    "version": "0.13.1",
+    "version": "0.13.2",
     "min_server_version": "6.0.0",
     "server": {
         "executables": {
@@ -18,7 +18,7 @@
         }
     },
     "settings_schema": {
-        "header": "",
+        "header": "Plugin: Channel Librarian",
         "footer": "",
         "settings": [
             {
@@ -65,10 +65,17 @@
             },
             {
                 "key": "IgnoredPatterns",
-                "display_name": "Ignored Patterns",
+                "display_name": "Ignored Patterns in Channel Names",
                 "type": "text",
                 "help_text": "Channels which include one of these patterns will not be announced. Different entries are seperated by semicolons (;).",
                 "default": "birthday"
+            },
+            {
+                "key": "BlacklistedPurposePatterns",
+                "display_name": "Ignored Patterns in Private Channel Purposes",
+                "type": "text",
+                "help_text": "Private channels which purposes include one of these tags will not be announced. Different entries are seperated by semicolons (;).",
+                "default": "#private"
             }
         ]
     }

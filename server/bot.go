@@ -38,6 +38,13 @@ func (p *NewChannelNotifyPlugin) EnsureDefaultValues() {
 			p.IgnoredPatterns = ignoredPatterns
 		}
 	}
+
+	if config.BlacklistedPurposePatterns != "" {
+		blacklistedPurposePatterns := strings.Split(config.BlacklistedPurposePatterns, ";")
+		if blacklistedPurposePatterns != nil {
+			p.BlacklistedPurposePatterns = blacklistedPurposePatterns
+		}
+	}
 }
 
 func (p *NewChannelNotifyPlugin) EnsureBotExists() (string, error) {
@@ -91,7 +98,20 @@ func (p *NewChannelNotifyPlugin) IsChannelIgnored(channel *model.Channel) bool {
 	}
 
 	if ContainsStringCaseInsensitive(p.IgnoredPatterns, channel.Name) {
-		p.API.LogDebug(fmt.Sprintf("ChannelLibrarian: Refusing to announce the channel as its name contains ignored patterns."))
+		p.API.LogDebug(fmt.Sprintf("ChannelLibrarian: Refusing to announce the channel as its name contains ignored patterns: %s", channel.Name))
+		return true
+	}
+
+	return false
+}
+
+func (p *NewChannelNotifyPlugin) HasBlacklistedPurposePatterns(channel *model.Channel) bool {
+	if p.BlacklistedPurposePatterns == nil || len(p.BlacklistedPurposePatterns) <= 0 {
+		return false
+	}
+
+	if ContainsStringCaseInsensitive(p.BlacklistedPurposePatterns, channel.Purpose) {
+		p.API.LogDebug("ChannelLibrarian: Refusing to announce the channel as its purpose contains ignored patterns.")
 		return true
 	}
 
