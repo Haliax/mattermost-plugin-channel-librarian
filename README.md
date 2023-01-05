@@ -20,12 +20,14 @@ This plugin is a fork of [gitlab.com/thepill/mattermost-plugin-newchannelnotify]
 <!-- In production, deploy and upload your plugin via the [System Console](https://about.mattermost.com/default-plugin-uploads). -->
 
 Optionally, change `settings` under the plugins settings menu in System Console:
-- Bot Name
-- Channel to Post
-- Include private channels
+- BotName
+- ChannelToPost
+- IncludePrivateChannels
 - IncludeChannelPurpose
 - TeamsToWatch
 - MessageTemplate
+- IgnoredPatterns
+- BlacklistedPurposePatterns
 
 **A note about Mentions**:
 Mentions will only work properly if the bot account has been assigned to the team and, if needed, the channel where it will post.
